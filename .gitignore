@@ -1,0 +1,9 @@
+# Personal exports and backups
+trade-challenge-*.csv
+trade-challenge-backup-*.json
+trade-journal-backup-*.json
+
+# Local machine files
+.DS_Store
+Thumbs.db
+*.log

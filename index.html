@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f6f2">
+    <meta name="description" content="A private, offline-first journal for a personal 20-day trading challenge.">
+    <title>20-Day Trading Challenge</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#" aria-label="Trading challenge home">
+          <span class="brand-mark" aria-hidden="true">T</span>
+          <span>Trade<span class="brand-light">Challenge</span></span>
+        </a>
+        <div class="sidebar-label">YOUR CHALLENGE</div>
+        <nav aria-label="Main navigation">
+          <a class="nav-link active" href="#overview" aria-current="page">
+            <span class="nav-icon" aria-hidden="true">▦</span> Overview
+          </a>
+          <a class="nav-link" href="#trades">
+            <span class="nav-icon" aria-hidden="true">↗</span> Trade history
+          </a>
+        </nav>
+        <div class="sidebar-spacer"></div>
+        <div class="privacy-note">
+          <span class="privacy-icon" aria-hidden="true">◈</span>
+          <div>
+            <strong>Your journal, your data</strong>
+            <p>Saved on this device. Never sent to a server.</p>
+          </div>
+        </div>
+        <div class="sidebar-footer">One day at a time. One trade at a time.</div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">YOUR TRADING WORKSPACE</div>
+            <div class="topbar-date" id="today-label"></div>
+          </div>
+          <div class="topbar-actions">
+            <button class="button button-quiet" id="export-button" type="button">Export backup</button>
+            <button class="button button-primary" id="day-action-button" type="button">Start today</button>
+          </div>
+        </header>
+
+        <div class="storage-error" id="storage-error" role="alert" hidden></div>
+
+        <section class="page-section" id="overview" aria-labelledby="welcome-heading">
+          <div class="welcome-row">
+            <div>
+              <div class="eyebrow accent-eyebrow">YOUR 20-DAY CHALLENGE</div>
+              <h1 id="welcome-heading">Get Off. Go Green</h1>
+              <p class="section-subtitle">Build 20 green trading days, one day at a time.</p>
+            </div>
+            <div class="today-chip"><span class="today-dot"></span> TODAY</div>
+          </div>
+
+          <section class="challenge-panel" aria-labelledby="challenge-heading">
+            <div class="challenge-top">
+              <div>
+                <div class="eyebrow accent-eyebrow">YOUR CURRENT RUN</div>
+                <h2 id="challenge-heading">20 green trading days</h2>
+                <p class="panel-description" id="challenge-description">A day counts when you choose to trade. Finish each trading day with positive net P&amp;L to keep the run going.</p>
+              </div>
+              <div class="challenge-count"><strong id="challenge-count">0</strong><span>OF 20 DAYS</span></div>
+            </div>
+            <div class="challenge-progress" id="challenge-progress" role="img" aria-label="No green days completed yet"></div>
+            <div class="challenge-footer">
+              <span id="challenge-status">Ready when you are.</span>
+              <div class="challenge-actions">
+                <button class="text-button" id="edit-encouragement-button" type="button">Edit trade messages <span aria-hidden="true">✎</span></button>
+                <button class="text-button" id="start-challenge-button" type="button" hidden>Start a new challenge <span aria-hidden="true">→</span></button>
+              </div>
+            </div>
+          </section>
+
+          <div class="stats-grid" aria-label="Today's trading summary">
+            <article class="stat-card">
+              <div class="stat-label">TODAY'S NET P&amp;L <span class="stat-symbol">↗</span></div>
+              <div class="stat-value" id="today-pnl">$0.00</div>
+              <div class="stat-caption" id="today-pnl-caption">Start your day to begin</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-label">TRADES TODAY <span class="stat-symbol">▤</span></div>
+              <div class="stat-value" id="today-trades">0 / 3</div>
+              <div class="stat-caption" id="today-trades-caption">Maximum 3 trades</div>
+            </article>
+            <article class="stat-card">
+              <div class="stat-label">DAY'S RESULT <span class="stat-symbol">✓</span></div>
+              <div class="stat-value" id="today-result">NOT STARTED</div>
+              <div class="stat-caption" id="today-result-caption">Choose whether you're trading today</div>
+            </article>
+          </div>
+
+          <section class="panel day-panel" id="day-panel" aria-labelledby="day-heading">
+            <div class="day-panel-main">
+              <div class="day-info">
+                <div class="eyebrow accent-eyebrow" id="day-eyebrow">YOUR TRADING DAY</div>
+                <h2 id="day-heading">Today at a glance</h2>
+                <p class="panel-description" id="day-description"></p>
+              </div>
+              <div class="day-balance">
+                <span>STARTING BALANCE</span>
+                <strong id="day-starting-balance">—</strong>
+              </div>
+            </div>
+            <div class="day-controls" id="day-controls">
+              <label class="news-toggle" id="news-toggle">
+                <input id="news-event" type="checkbox">
+                <span>Major news event today</span>
+                <small>Allows one extra trade (4 max)</small>
+              </label>
+              <div class="day-buttons">
+                <button class="button button-secondary" id="add-trade-button" type="button">＋ Log a trade</button>
+                <button class="button button-quiet" id="finish-day-button" type="button">End day &amp; export CSV</button>
+              </div>
+            </div>
+            <div class="day-closed" id="day-closed" hidden></div>
+          </section>
+          <section class="panel start-day-card" id="start-day-card" aria-labelledby="start-day-heading" hidden>
+            <div>
+              <div class="eyebrow accent-eyebrow">YOUR NEXT STEP</div>
+              <h2 id="start-day-heading">Not trading today?</h2>
+              <p class="panel-description" id="start-day-description">Only days you choose to start are counted in your challenge.</p>
+            </div>
+            <button class="button button-primary" id="start-day-secondary-button" type="button">Start today</button>
+          </section>
+
+          <section class="panel trades-panel history-panel" id="trades" aria-labelledby="trades-heading">
+            <div class="panel-header">
+              <div>
+                <h2 id="trades-heading">Trade history</h2>
+                <p class="panel-description">A simple record of each day's wins and losses.</p>
+              </div>
+              <label class="date-filter">
+                <span class="sr-only">Filter trades by date</span>
+                <input id="history-filter" type="date" aria-label="Filter trades by date">
+              </label>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th scope="col">DATE</th>
+                    <th scope="col">SYMBOL</th>
+                    <th scope="col">RESULT</th>
+                    <th scope="col">AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody id="trades-body"></tbody>
+              </table>
+              <div class="empty-state" id="empty-state">
+                <span class="empty-icon" aria-hidden="true">↗</span>
+                <strong>No trades logged yet</strong>
+                <p>Start your day, then record each positive or negative trade.</p>
+              </div>
+            </div>
+            <div class="table-footer" id="history-footer"></div>
+          </section>
+          <footer class="disclaimer">For personal record-keeping only. This journal does not provide financial or investment advice.</footer>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="modal" id="day-dialog" aria-labelledby="day-dialog-title">
+      <form class="modal-form" id="day-form">
+        <div class="modal-header">
+          <div>
+            <div class="eyebrow accent-eyebrow">YOUR DAILY CHECK-IN</div>
+            <h2 id="day-dialog-title">Are you trading today?</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button>
+        </div>
+        <p class="panel-description day-prompt-description" id="day-prompt-description">If you start your day, it counts as one of your 20 challenge days. Enter your opening account balance to begin.</p>
+        <label class="field">
+          <span>Starting account balance</span>
+          <div class="input-with-prefix"><span>$</span><input id="starting-balance" name="startingBalance" type="number" min="0" step="0.01" placeholder="e.g. 5,000.00" required></div>
+        </label>
+        <label class="news-toggle start-news-toggle">
+          <input id="start-news-event" type="checkbox">
+          <span>Major news event today</span>
+          <small>Allows one extra trade (4 max)</small>
+        </label>
+        <div class="modal-actions">
+          <button class="button button-quiet" type="submit" name="action" value="skip" formnovalidate>Not trading today</button>
+          <button class="button button-primary" type="submit" name="action" value="start">Yes, start my day</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="trade-dialog" aria-labelledby="trade-dialog-title">
+      <form class="modal-form" id="trade-form">
+        <div class="modal-header">
+          <div>
+            <div class="eyebrow accent-eyebrow">TODAY'S TRADE <span id="trade-count-hint"></span></div>
+            <h2 id="trade-dialog-title">Log a trade</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button>
+        </div>
+        <div class="form-grid">
+          <label class="field">
+            <span>Symbol</span>
+            <input id="trade-symbol" name="symbol" type="text" maxlength="20" placeholder="e.g. AAPL" autocomplete="off" required>
+          </label>
+          <fieldset class="field result-field">
+            <legend>Result</legend>
+            <div class="segmented-control">
+              <label><input type="radio" name="result" value="positive" checked><span class="positive-option">Positive</span></label>
+              <label><input type="radio" name="result" value="negative"><span class="negative-option">Negative</span></label>
+            </div>
+          </fieldset>
+          <label class="field field-full">
+            <span>Amount</span>
+            <div class="input-with-prefix"><span>$</span><input name="amount" type="number" min="0.01" step="0.01" placeholder="0.00" required></div>
+          </label>
+        </div>
+        <p class="field-hint">Enter the size of the gain or loss as a positive amount. The result above sets its sign.</p>
+        <div class="modal-actions">
+          <button class="button button-quiet" type="button" data-close-dialog>Cancel</button>
+          <button class="button button-primary" type="submit">Save trade</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="finish-dialog" aria-labelledby="finish-dialog-title">
+      <form class="modal-form" id="finish-form">
+        <div class="modal-header">
+          <div>
+            <div class="eyebrow accent-eyebrow">DAY-END CHECK-IN</div>
+            <h2 id="finish-dialog-title">Finish today's trading?</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button>
+        </div>
+        <p class="finish-summary" id="finish-summary"></p>
+        <p class="panel-description">Finishing saves today's results in your journal and downloads an Excel-compatible CSV backup. This day's trades can't be changed. A day is green only when its combined P&amp;L is above $0.</p>
+        <div class="modal-actions">
+          <button class="button button-quiet" type="button" data-close-dialog>Keep trading</button>
+          <button class="button button-primary" type="submit">End day &amp; download CSV</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal encouragement-dialog" id="encouragement-dialog" aria-labelledby="encouragement-title" aria-describedby="encouragement-message">
+      <div class="encouragement-content">
+        <div class="encouragement-icon" aria-hidden="true">✦</div>
+        <div class="eyebrow accent-eyebrow">TRADE SAVED</div>
+        <h2 id="encouragement-title">A green trade!</h2>
+        <p class="encouragement-message" id="encouragement-message"></p>
+        <button class="button button-primary encouragement-continue" id="encouragement-continue" type="button">Continue</button>
+      </div>
+      <button class="icon-button encouragement-close" type="button" data-close-dialog aria-label="Close dialog">×</button>
+    </dialog>
+
+    <dialog class="modal" id="encouragement-edit-dialog" aria-labelledby="encouragement-edit-title">
+      <form class="modal-form" id="encouragement-edit-form">
+        <div class="modal-header">
+          <div>
+            <div class="eyebrow accent-eyebrow">YOUR DAILY MOTIVATION</div>
+            <h2 id="encouragement-edit-title">Edit trade messages</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button>
+        </div>
+        <p class="panel-description encouragement-edit-description">Your message appears after you save a trade. Write something that helps you stay grounded on winning days and learn from losing ones.</p>
+        <label class="field encouragement-field">
+          <span>Green trade message</span>
+          <textarea id="positive-encouragement" name="positiveEncouragement" rows="3" maxlength="280" required></textarea>
+        </label>
+        <label class="field encouragement-field">
+          <span>Red trade message</span>
+          <textarea id="negative-encouragement" name="negativeEncouragement" rows="3" maxlength="280" required></textarea>
+        </label>
+        <div class="modal-actions">
+          <button class="button button-quiet" type="button" data-close-dialog>Cancel</button>
+          <button class="button button-primary" type="submit">Save messages</button>
+        </div>
+      </form>
+    </dialog>
+  </body>
+</html>
