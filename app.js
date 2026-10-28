@@ -8,6 +8,20 @@
     positive: 'Celebrate the win, then stay grounded. Stick to your plan and protect your progress.',
     negative: 'One trade does not define you. Take a breath, learn from it, and follow your plan.'
   };
+  const DEFAULT_GOAL_MODE = {
+    goalAmount: null,
+    timeframe: 5,
+    dailyReturnPercent: 20,
+    startingBalance: null,
+    status: 'setup',
+    days: [],
+    trades: []
+  };
+  const emptyGoalMode = () => ({
+    ...DEFAULT_GOAL_MODE,
+    days: [],
+    trades: []
+  });
 
   const elements = {
     todayLabel: document.querySelector('#today-label'),
@@ -38,7 +52,12 @@
     finishDayButton: document.querySelector('#finish-day-button'),
     tradeDialog: document.querySelector('#trade-dialog'),
     tradeForm: document.querySelector('#trade-form'),
+    tradeDialogTitle: document.querySelector('#trade-dialog-title'),
+    tradeDialogEyebrow: document.querySelector('#trade-dialog-eyebrow'),
     tradeCountHint: document.querySelector('#trade-count-hint'),
+    tradeSubmitButton: document.querySelector('#trade-submit-button'),
+    tradeDateField: document.querySelector('#trade-date-field'),
+    tradeDate: document.querySelector('#trade-date'),
     encouragementDialog: document.querySelector('#encouragement-dialog'),
     encouragementTitle: document.querySelector('#encouragement-title'),
     encouragementMessage: document.querySelector('#encouragement-message'),
@@ -62,7 +81,49 @@
     historyFilter: document.querySelector('#history-filter'),
     historyFooter: document.querySelector('#history-footer'),
     storageError: document.querySelector('#storage-error'),
-    exportButton: document.querySelector('#export-button')
+    exportButton: document.querySelector('#export-button'),
+    challengeModeButton: document.querySelector('#challenge-mode-button'),
+    goalModeButton: document.querySelector('#goal-mode-button'),
+    challengeModeView: document.querySelector('#challenge-mode-view'),
+    goalModeView: document.querySelector('#goal-mode-view'),
+    challengeNavigation: document.querySelector('#challenge-navigation'),
+    challengeNavigationLabel: document.querySelector('.challenge-navigation-label'),
+    goalForm: document.querySelector('#goal-form'),
+    goalAmount: document.querySelector('#goal-amount'),
+    goalStartingInput: document.querySelector('#goal-starting-input'),
+    goalReview: document.querySelector('#goal-review'),
+    goalStartingCapital: document.querySelector('#goal-starting-capital'),
+    goalTradeTarget: document.querySelector('#goal-trade-target'),
+    goalTradeTargetAmount: document.querySelector('#goal-trade-target-amount'),
+    goalSummaryTimeframe: document.querySelector('#goal-summary-timeframe'),
+    goalEndingBalance: document.querySelector('#goal-ending-balance'),
+    goalScheduleDescription: document.querySelector('#goal-schedule-description'),
+    goalScheduleBody: document.querySelector('#goal-schedule-body'),
+    confirmGoalButton: document.querySelector('#confirm-goal-button'),
+    goalTracker: document.querySelector('#goal-tracker'),
+    goalTrackerStarting: document.querySelector('#goal-tracker-starting'),
+    goalCurrentBalance: document.querySelector('#goal-current-balance'),
+    goalCurrentPnl: document.querySelector('#goal-current-pnl'),
+    goalTrackerGoal: document.querySelector('#goal-tracker-goal'),
+    goalTrackerTimeframe: document.querySelector('#goal-tracker-timeframe'),
+    goalProgressTitle: document.querySelector('#goal-progress-title'),
+    goalProgressDescription: document.querySelector('#goal-progress-description'),
+    goalProgressPercent: document.querySelector('#goal-progress-percent'),
+    goalProgressBar: document.querySelector('#goal-progress-bar'),
+    goalProgressFill: document.querySelector('#goal-progress-fill'),
+    goalNextTarget: document.querySelector('#goal-next-target'),
+    goalNewsToggle: document.querySelector('#goal-news-toggle'),
+    goalNewsEvent: document.querySelector('#goal-news-event'),
+    goalStartDayButton: document.querySelector('#goal-start-day-button'),
+    goalAddTradeButton: document.querySelector('#goal-add-trade-button'),
+    goalFinishDayButton: document.querySelector('#goal-finish-day-button'),
+    goalDayClosed: document.querySelector('#goal-day-closed'),
+    goalTradesBody: document.querySelector('#goal-trades-body'),
+    goalEmptyState: document.querySelector('#goal-empty-state'),
+    goalHistoryFooter: document.querySelector('#goal-history-footer'),
+    goalNewButton: document.querySelector('#goal-new-button'),
+    goalResetDialog: document.querySelector('#goal-reset-dialog'),
+    goalResetForm: document.querySelector('#goal-reset-form')
   };
 
   const localToday = () => {
@@ -144,7 +205,31 @@
       && value.encouragement.positive.length <= 280
       && typeof value.encouragement.negative === 'string'
       && value.encouragement.negative.trim().length > 0
-      && value.encouragement.negative.length <= 280);
+      && value.encouragement.negative.length <= 280)
+    && (value.activeMode === undefined || ['challenge', 'goal'].includes(value.activeMode))
+    && (value.goalMode === undefined || value.goalMode !== null
+      && typeof value.goalMode === 'object'
+      && (value.goalMode.goalAmount === null || Number.isFinite(value.goalMode.goalAmount)
+        && value.goalMode.goalAmount > 0)
+      && [5, 10, 20].includes(value.goalMode.timeframe)
+      && Number.isFinite(value.goalMode.dailyReturnPercent)
+      && value.goalMode.dailyReturnPercent > 0
+      && (value.goalMode.startingBalance === undefined || value.goalMode.startingBalance === null
+        || Number.isFinite(value.goalMode.startingBalance) && value.goalMode.startingBalance > 0)
+      && (value.goalMode.status === undefined || ['setup', 'draft', 'active', 'completed'].includes(value.goalMode.status))
+      && (value.goalMode.status === undefined || value.goalMode.status === 'setup'
+        || Number.isFinite(value.goalMode.startingBalance) && value.goalMode.startingBalance > 0
+        && Number.isFinite(value.goalMode.goalAmount) && value.goalMode.goalAmount > 0)
+      && (value.goalMode.days === undefined || Array.isArray(value.goalMode.days)
+        && value.goalMode.days.every(day => day
+          && typeof day.id === 'string'
+          && isDate(day.date)
+          && Number.isFinite(day.startingBalance)
+          && day.startingBalance >= 0
+          && typeof day.majorNewsEvent === 'boolean'
+          && typeof day.finished === 'boolean'))
+      && (value.goalMode.trades === undefined || Array.isArray(value.goalMode.trades)
+        && value.goalMode.trades.every(isValidTrade)));
 
   const emptyState = () => ({
     version: 2,
@@ -153,7 +238,9 @@
     challenges: [],
     currentChallengeId: null,
     skippedDates: [],
-    encouragement: { ...DEFAULT_ENCOURAGEMENT }
+    encouragement: { ...DEFAULT_ENCOURAGEMENT },
+    activeMode: 'challenge',
+    goalMode: emptyGoalMode()
   });
 
   const migrateLegacyState = legacy => {
@@ -196,11 +283,30 @@
       if (!isValidState(parsed)) {
         throw new Error('Your saved challenge has an invalid format. Your data was not overwritten.');
       }
+      const needsMigration = parsed.encouragement === undefined
+        || parsed.activeMode === undefined
+        || parsed.goalMode === undefined
+        || parsed.goalMode.startingBalance === undefined
+        || parsed.goalMode.status === undefined
+        || parsed.goalMode.days === undefined
+        || parsed.goalMode.trades === undefined;
       if (parsed.encouragement === undefined) {
         parsed.encouragement = { ...DEFAULT_ENCOURAGEMENT };
-        return { value: parsed, migrated: true };
       }
-      return { value: parsed, migrated: false };
+      if (parsed.activeMode === undefined) {
+        parsed.activeMode = 'challenge';
+      }
+      if (parsed.goalMode === undefined) {
+        parsed.goalMode = emptyGoalMode();
+      } else {
+        parsed.goalMode = {
+          ...emptyGoalMode(),
+          ...parsed.goalMode,
+          days: parsed.goalMode.days || [],
+          trades: parsed.goalMode.trades || []
+        };
+      }
+      return { value: parsed, migrated: needsMigration };
     }
 
     const legacyStored = localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -260,9 +366,11 @@
   };
 
   const getTodayDay = () => state.days.find(day => day.date === localToday()) || null;
+  const getTodayGoalDay = () => state.goalMode.days.find(day => day.date === localToday()) || null;
   const getChallenge = id => state.challenges.find(challenge => challenge.id === id) || null;
   const getCurrentChallenge = () => getChallenge(state.currentChallengeId);
   const getDayTrades = date => state.trades.filter(trade => trade.date === date);
+  const getGoalDayTrades = date => state.goalMode.trades.filter(trade => trade.date === date);
   const getLastFinishedDay = () => [...state.days]
     .filter(day => day.finished && day.date < localToday())
     .sort((left, right) => right.date.localeCompare(left.date))[0] || null;
@@ -278,6 +386,34 @@
     const amount = getTradeAmount(trade);
     return sum + (amount === null ? 0 : amount);
   }, 0);
+
+  const getGoalPnl = () => state.goalMode.trades.reduce((sum, trade) => {
+    const amount = getTradeAmount(trade);
+    return sum + (amount === null ? 0 : amount);
+  }, 0);
+
+  const getGoalBalance = () => (state.goalMode.startingBalance || 0) + getGoalPnl();
+
+  const getGoalTarget = () => {
+    const goal = state.goalMode;
+    if (!goal.startingBalance || !goal.goalAmount) {
+      return null;
+    }
+    const targetBalance = goal.startingBalance + goal.goalAmount;
+    const dailyReturn = (targetBalance / goal.startingBalance) ** (1 / goal.timeframe) - 1;
+    return Number.isFinite(dailyReturn) ? dailyReturn : null;
+  };
+
+  const refreshChallengeResult = challenge => {
+    const days = challenge.dayIds.map(id => state.days.find(day => day.id === id)).filter(Boolean);
+    const failedDay = days.find(day => day.finished && !day.green);
+    challenge.failedDate = failedDay ? failedDay.date : null;
+    challenge.status = failedDay
+      ? 'failed'
+      : days.length >= CHALLENGE_LENGTH && days.slice(0, CHALLENGE_LENGTH).every(day => day.finished && day.green)
+        ? 'completed'
+        : 'active';
+  };
 
   const finishDayRecord = day => {
     if (day.finished) {
@@ -485,15 +621,177 @@
         <td>${escapeHtml(formatDate(trade.date))}</td>
         <td class="symbol-cell">${escapeHtml(trade.symbol)}</td>
         <td><span class="result-badge ${trade.result === 'positive' ? 'positive' : trade.result === 'negative' ? 'negative' : 'neutral'}">${escapeHtml(resultLabel)}</span></td>
-        <td class="pnl-cell ${trade.result === 'positive' ? 'positive' : trade.result === 'negative' ? 'negative' : ''}">${escapeHtml(amountLabel)}</td>`;
+        <td class="pnl-cell ${trade.result === 'positive' ? 'positive' : trade.result === 'negative' ? 'negative' : ''}">${escapeHtml(amountLabel)}</td>
+        <td class="trade-actions"></td>`;
+      if (trade.result === 'positive' || trade.result === 'negative') {
+        const editButton = document.createElement('button');
+        editButton.className = 'trade-edit-button';
+        editButton.type = 'button';
+        editButton.dataset.editTrade = trade.id;
+        editButton.setAttribute('aria-label', `Edit ${trade.symbol} trade from ${formatDate(trade.date)}`);
+        editButton.textContent = 'Edit';
+        row.querySelector('.trade-actions').append(editButton);
+      }
       elements.tradesBody.append(row);
     }
   };
 
+  const renderMode = () => {
+    const goalModeActive = state.activeMode === 'goal';
+    elements.challengeModeView.hidden = goalModeActive;
+    elements.goalModeView.hidden = !goalModeActive;
+    elements.challengeNavigation.hidden = goalModeActive;
+    elements.challengeNavigationLabel.hidden = goalModeActive;
+    elements.dayActionButton.hidden = goalModeActive;
+    elements.challengeModeButton.classList.toggle('active', !goalModeActive);
+    elements.goalModeButton.classList.toggle('active', goalModeActive);
+    elements.challengeModeButton.setAttribute('aria-pressed', String(!goalModeActive));
+    elements.goalModeButton.setAttribute('aria-pressed', String(goalModeActive));
+  };
+
+  const renderGoalMode = () => {
+    const goal = state.goalMode;
+    elements.goalAmount.value = goal.goalAmount ?? '';
+    elements.goalStartingInput.value = goal.startingBalance ?? '';
+    elements.goalForm.querySelector(`input[name="timeframe"][value="${goal.timeframe}"]`).checked = true;
+    elements.goalScheduleBody.replaceChildren();
+
+    const hasPlan = goal.goalAmount !== null && goal.startingBalance !== null;
+    const targetReturn = getGoalTarget();
+    const targetBalance = goal.startingBalance === null || goal.goalAmount === null
+      ? null
+      : goal.startingBalance + goal.goalAmount;
+    elements.goalReview.hidden = !hasPlan || goal.status !== 'draft';
+    elements.goalTracker.hidden = !['active', 'completed'].includes(goal.status);
+    const planLocked = ['active', 'completed'].includes(goal.status);
+    elements.goalForm.querySelector('button[type="submit"]').disabled = planLocked;
+    elements.goalStartingInput.disabled = planLocked;
+    elements.goalAmount.disabled = planLocked;
+    elements.goalForm.querySelectorAll('input[name="timeframe"]').forEach(input => {
+      input.disabled = planLocked;
+    });
+
+    if (!hasPlan || goal.status !== 'draft' || targetReturn === null || targetBalance === null) {
+      return;
+    }
+
+    const tradingDays = goal.timeframe;
+    elements.goalStartingCapital.textContent = formatMoney(goal.startingBalance);
+    elements.goalTradeTarget.textContent = `${(targetReturn * 100).toFixed(2)}%`;
+    elements.goalTradeTargetAmount.textContent = `${formatMoney(goal.startingBalance * targetReturn)} target gain on the first trade day`;
+    elements.goalSummaryTimeframe.textContent = `${tradingDays} trading days · ${formatMoney(goal.goalAmount)} profit goal`;
+    elements.goalEndingBalance.textContent = formatMoney(targetBalance);
+    elements.goalScheduleDescription.textContent = `Assuming one target trade per trading day, this compounded return reaches the goal balance in ${tradingDays} trading days.`;
+
+    let balance = goal.startingBalance;
+    for (let day = 1; day <= tradingDays; day += 1) {
+      const dailyGain = balance * targetReturn;
+      const row = document.createElement('tr');
+      for (const value of [
+        `Day ${day}`,
+        formatMoney(balance),
+        formatMoney(dailyGain),
+        formatMoney(balance + dailyGain)
+      ]) {
+        const cell = document.createElement('td');
+        cell.textContent = value;
+        row.append(cell);
+      }
+      elements.goalScheduleBody.append(row);
+      balance += dailyGain;
+    }
+
+  };
+
+  const renderGoalTracker = () => {
+    const goal = state.goalMode;
+    if (!['active', 'completed'].includes(goal.status)) {
+      return;
+    }
+
+    const todayDay = getTodayGoalDay();
+    const completedDays = goal.days.filter(day => day.finished).length;
+    const currentBalance = getGoalBalance();
+    const targetBalance = goal.startingBalance + goal.goalAmount;
+    const profit = currentBalance - goal.startingBalance;
+    const progress = Math.max(0, Math.min(100, profit / goal.goalAmount * 100));
+    const dailyReturn = getGoalTarget();
+    const tradeCount = todayDay ? getGoalDayTrades(todayDay.date).length : 0;
+    const tradeLimit = todayDay && todayDay.majorNewsEvent ? NEWS_TRADE_LIMIT : DAILY_TRADE_LIMIT;
+
+    elements.goalTrackerStarting.textContent = formatMoney(goal.startingBalance);
+    elements.goalCurrentBalance.textContent = formatMoney(currentBalance);
+    elements.goalCurrentPnl.textContent = `${formatMoney(profit)} net P&L`;
+    elements.goalTrackerGoal.textContent = formatMoney(goal.goalAmount);
+    elements.goalTrackerTimeframe.textContent = `${goal.timeframe} trading-day target`;
+    elements.goalProgressPercent.textContent = `${Math.floor(progress)}%`;
+    elements.goalProgressBar.setAttribute('aria-valuenow', String(Math.floor(progress)));
+    elements.goalProgressFill.style.width = `${progress}%`;
+    elements.goalProgressTitle.textContent = goal.status === 'completed' ? 'Profit goal reached' : 'Goal progress';
+    elements.goalProgressDescription.textContent = goal.status === 'completed'
+      ? `Your account is at or above the goal balance of ${formatMoney(targetBalance)}.`
+      : `${completedDays} of ${goal.timeframe} trading days completed · ${formatMoney(Math.max(0, targetBalance - currentBalance))} remaining to reach your ${formatMoney(goal.goalAmount)} profit goal.`;
+    const nextTargetBalance = goal.startingBalance * (1 + dailyReturn) ** (completedDays + 1);
+    const nextTradeTarget = currentBalance * dailyReturn;
+    elements.goalNextTarget.textContent = goal.status === 'completed'
+      ? 'This goal is complete. Your trades and history remain saved.'
+      : completedDays >= goal.timeframe
+        ? `Your ${goal.timeframe}-day timeframe has passed. Keep recording actual results toward the ${formatMoney(targetBalance)} goal balance.`
+        : `Target: ${(dailyReturn * 100).toFixed(2)}% per trade · Next target balance: ${formatMoney(nextTargetBalance)} · Approx. gain at current balance: ${formatMoney(nextTradeTarget)}`;
+
+    elements.goalStartDayButton.hidden = Boolean(todayDay) || goal.status === 'completed';
+    elements.goalNewsToggle.hidden = !todayDay || todayDay.finished || goal.status === 'completed';
+    elements.goalNewsEvent.checked = Boolean(todayDay && todayDay.majorNewsEvent);
+    elements.goalNewsEvent.disabled = Boolean(todayDay && getGoalDayTrades(todayDay.date).length >= NEWS_TRADE_LIMIT);
+    elements.goalAddTradeButton.hidden = !todayDay || todayDay.finished || goal.status === 'completed';
+    elements.goalFinishDayButton.hidden = !todayDay || todayDay.finished || goal.status === 'completed';
+    elements.goalAddTradeButton.disabled = !todayDay || tradeCount >= tradeLimit;
+    elements.goalAddTradeButton.textContent = tradeCount >= tradeLimit
+      ? 'Daily trade limit reached'
+      : `＋ Log ${tradeCount === 3 && todayDay.majorNewsEvent ? '4th ' : 'a '}trade`;
+    elements.goalDayClosed.hidden = !todayDay || !todayDay.finished;
+    elements.goalDayClosed.textContent = todayDay && todayDay.finished
+      ? `Day complete · ${tradeCount} ${tradeCount === 1 ? 'trade' : 'trades'} · Day net: ${formatMoney(getGoalDayTrades(todayDay.date).reduce((sum, trade) => sum + getTradeAmount(trade), 0))} · Current balance: ${formatMoney(currentBalance)}`
+      : '';
+  };
+
+  const renderGoalHistory = () => {
+    const trades = [...state.goalMode.trades]
+      .sort((left, right) => right.date.localeCompare(left.date) || right.createdAt.localeCompare(left.createdAt));
+    elements.goalTradesBody.replaceChildren();
+    elements.goalEmptyState.hidden = trades.length > 0;
+    elements.goalHistoryFooter.textContent = trades.length === 0
+      ? ''
+      : `${trades.length} goal ${trades.length === 1 ? 'trade' : 'trades'}`;
+
+    for (const trade of trades) {
+      const amount = getTradeAmount(trade);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${escapeHtml(formatDate(trade.date))}</td>
+        <td class="symbol-cell">${escapeHtml(trade.symbol)}</td>
+        <td><span class="result-badge ${trade.result === 'positive' ? 'positive' : 'negative'}">${escapeHtml(trade.result)}</span></td>
+        <td class="pnl-cell ${trade.result}">${escapeHtml(formatMoney(amount))}</td>
+        <td class="trade-actions"></td>`;
+      const editButton = document.createElement('button');
+      editButton.className = 'trade-edit-button';
+      editButton.type = 'button';
+      editButton.dataset.editGoalTrade = trade.id;
+      editButton.setAttribute('aria-label', `Edit ${trade.symbol} goal trade from ${formatDate(trade.date)}`);
+      editButton.textContent = 'Edit';
+      row.querySelector('.trade-actions').append(editButton);
+      elements.goalTradesBody.append(row);
+    }
+  };
+
   const render = () => {
+    renderMode();
     renderChallenge();
     renderToday();
     renderHistory();
+    renderGoalMode();
+    renderGoalTracker();
+    renderGoalHistory();
   };
 
   const startDay = formData => {
@@ -538,19 +836,91 @@
     });
   };
 
+  const startGoalDay = () => {
+    const goal = state.goalMode;
+    if (goal.status !== 'active' || getTodayGoalDay()) {
+      return;
+    }
+    if (changeState(() => {
+      goal.days.filter(day => !day.finished && day.date < localToday())
+        .forEach(day => {
+          day.finished = true;
+        });
+      goal.days.push({
+        id: createId(),
+        date: localToday(),
+        startingBalance: getGoalBalance(),
+        majorNewsEvent: false,
+        finished: false
+      });
+    })) {
+      render();
+    }
+  };
+
+  const finishGoalDay = () => {
+    const day = getTodayGoalDay();
+    if (!day || day.finished || state.goalMode.status !== 'active') {
+      return;
+    }
+    if (changeState(() => {
+      day.finished = true;
+      if (getGoalBalance() >= state.goalMode.startingBalance + state.goalMode.goalAmount) {
+        state.goalMode.status = 'completed';
+      }
+    })) {
+      render();
+    }
+  };
+
   const openTradeDialog = () => {
-    const day = getTodayDay();
+    const goalMode = state.activeMode === 'goal';
+    const day = goalMode ? getTodayGoalDay() : getTodayDay();
     if (!day || day.finished) {
       return;
     }
-    const count = getDayTrades(localToday()).length;
+    const count = goalMode ? getGoalDayTrades(localToday()).length : getDayTrades(localToday()).length;
     const limit = day.majorNewsEvent ? NEWS_TRADE_LIMIT : DAILY_TRADE_LIMIT;
     if (count >= limit) {
       showStorageError('You have reached the trade limit for today.');
       return;
     }
     elements.tradeForm.reset();
+    editingTradeId = null;
+    editingTradeMode = goalMode ? 'goal' : 'challenge';
+    elements.tradeDateField.hidden = true;
+    elements.tradeDate.disabled = true;
+    elements.tradeDialogTitle.textContent = 'Log a trade';
+    elements.tradeDialogEyebrow.firstChild.textContent = goalMode ? "GOAL MODE TRADE " : "TODAY'S TRADE ";
+    elements.tradeSubmitButton.textContent = 'Save trade';
     elements.tradeCountHint.textContent = ` · ${count + 1} of ${limit}`;
+    elements.tradeDialog.showModal();
+    document.querySelector('#trade-symbol').focus();
+  };
+
+  let editingTradeId = null;
+  let editingTradeMode = 'challenge';
+
+  const openEditTradeDialog = (tradeId, mode = 'challenge') => {
+    const trades = mode === 'goal' ? state.goalMode.trades : state.trades;
+    const trade = trades.find(item => item.id === tradeId);
+    if (!trade || !['positive', 'negative'].includes(trade.result)) {
+      return;
+    }
+
+    elements.tradeForm.reset();
+    editingTradeId = trade.id;
+    editingTradeMode = mode;
+    elements.tradeDateField.hidden = false;
+    elements.tradeDate.disabled = false;
+    elements.tradeDate.value = trade.date;
+    elements.tradeDialogTitle.textContent = 'Edit trade';
+    elements.tradeDialogEyebrow.firstChild.textContent = mode === 'goal' ? 'GOAL TRADE HISTORY ' : 'TRADE HISTORY ';
+    elements.tradeCountHint.textContent = ` · ${formatDate(trade.date)}`;
+    elements.tradeForm.elements.symbol.value = trade.symbol;
+    elements.tradeForm.elements.amount.value = trade.amount;
+    elements.tradeForm.querySelector(`input[name="result"][value="${trade.result}"]`).checked = true;
+    elements.tradeSubmitButton.textContent = 'Save changes';
     elements.tradeDialog.showModal();
     document.querySelector('#trade-symbol').focus();
   };
@@ -645,20 +1015,117 @@
       openDayDialog();
     }
   });
+  elements.challengeModeButton.addEventListener('click', () => {
+    if (changeState(() => {
+      state.activeMode = 'challenge';
+    })) {
+      render();
+    }
+  });
+  elements.goalModeButton.addEventListener('click', () => {
+    if (changeState(() => {
+      state.activeMode = 'goal';
+    })) {
+      render();
+    }
+  });
+  elements.goalForm.addEventListener('submit', event => {
+    event.preventDefault();
+    if (!elements.goalForm.reportValidity()) {
+      return;
+    }
+    const formData = new FormData(elements.goalForm);
+    const startingBalance = Number(formData.get('startingBalance'));
+    const goalAmount = Number(formData.get('goalAmount'));
+    const timeframe = Number(formData.get('timeframe'));
+    if (!Number.isFinite(startingBalance) || startingBalance <= 0
+      || !Number.isFinite(goalAmount) || goalAmount <= 0
+      || ![5, 10, 20].includes(timeframe)) {
+      showStorageError('Enter a valid starting balance, profit goal, and timeframe.');
+      return;
+    }
+    const targetBalance = startingBalance + goalAmount;
+    const dailyReturnPercent = ((targetBalance / startingBalance) ** (1 / timeframe) - 1) * 100;
+    if (!Number.isFinite(targetBalance) || !Number.isFinite(dailyReturnPercent)) {
+      showStorageError('Those values are too large to calculate. Try a smaller starting balance or profit goal.');
+      return;
+    }
+    if (changeState(() => {
+      state.goalMode = {
+        ...DEFAULT_GOAL_MODE,
+        goalAmount,
+        startingBalance,
+        timeframe,
+        dailyReturnPercent,
+        status: 'draft'
+      };
+    })) {
+      render();
+    }
+  });
+  elements.confirmGoalButton.addEventListener('click', () => {
+    if (state.goalMode.status !== 'draft') {
+      return;
+    }
+    if (changeState(() => {
+      state.goalMode.status = 'active';
+    })) {
+      render();
+    }
+  });
+  elements.goalStartDayButton.addEventListener('click', startGoalDay);
+  elements.goalAddTradeButton.addEventListener('click', openTradeDialog);
+  elements.goalFinishDayButton.addEventListener('click', finishGoalDay);
+  elements.goalNewsEvent.addEventListener('change', () => {
+    const day = getTodayGoalDay();
+    if (!day || day.finished || state.goalMode.status !== 'active') {
+      return;
+    }
+    if (changeState(() => {
+      day.majorNewsEvent = elements.goalNewsEvent.checked;
+    })) {
+      render();
+    }
+  });
+  elements.goalNewButton.addEventListener('click', () => {
+    elements.goalResetDialog.showModal();
+  });
   elements.startDaySecondaryButton.addEventListener('click', openDayDialog);
   elements.startChallengeButton.addEventListener('click', openDayDialog);
   elements.addTradeButton.addEventListener('click', openTradeDialog);
   elements.historyFilter.addEventListener('change', renderHistory);
+  elements.tradesBody.addEventListener('click', event => {
+    const button = event.target.closest('button[data-edit-trade]');
+    if (button) {
+      openEditTradeDialog(button.dataset.editTrade);
+    }
+  });
+  elements.goalTradesBody.addEventListener('click', event => {
+    const button = event.target.closest('button[data-edit-goal-trade]');
+    if (button) {
+      openEditTradeDialog(button.dataset.editGoalTrade, 'goal');
+    }
+  });
 
   document.querySelectorAll('[data-close-dialog]').forEach(button => {
     button.addEventListener('click', () => button.closest('dialog').close());
   });
-  [elements.dayDialog, elements.tradeDialog, elements.finishDialog, elements.encouragementDialog, elements.encouragementEditDialog].forEach(dialog => {
+  [elements.dayDialog, elements.tradeDialog, elements.finishDialog, elements.encouragementDialog, elements.encouragementEditDialog, elements.goalResetDialog].forEach(dialog => {
     dialog.addEventListener('click', event => {
       if (event.target === dialog) {
         dialog.close();
       }
     });
+  });
+  elements.goalResetForm.addEventListener('submit', event => {
+    event.preventDefault();
+    if (changeState(() => {
+      state.goalMode = emptyGoalMode();
+    })) {
+      elements.goalResetDialog.close();
+      render();
+      elements.goalStartingInput.focus();
+    }
   });
 
   elements.dayForm.addEventListener('submit', event => {
@@ -698,23 +1165,79 @@
     if (!elements.tradeForm.reportValidity()) {
       return;
     }
-    const day = getTodayDay();
+    const formData = new FormData(elements.tradeForm);
+    const symbol = String(formData.get('symbol')).trim().toUpperCase();
+    const result = String(formData.get('result'));
+    const amount = Number(formData.get('amount'));
+    if (!symbol || !['positive', 'negative'].includes(result) || !Number.isFinite(amount) || amount <= 0) {
+      showStorageError('Enter a symbol and an amount greater than zero.');
+      return;
+    }
+
+    if (editingTradeId) {
+      const trades = editingTradeMode === 'goal' ? state.goalMode.trades : state.trades;
+      const trade = trades.find(item => item.id === editingTradeId);
+      if (!trade) {
+        showStorageError('This trade is no longer in your journal. Close the dialog and try again.');
+        elements.tradeDialog.close();
+        return;
+      }
+      const date = String(formData.get('date'));
+      if (!isDate(date)) {
+        showStorageError('Enter a valid trade date.');
+        return;
+      }
+      if (changeState(() => {
+        const previousDate = trade.date;
+        const savedTrade = trades.find(item => item.id === editingTradeId);
+        if (!savedTrade) {
+          throw new Error('This trade is no longer in your journal.');
+        }
+        savedTrade.symbol = symbol;
+        savedTrade.result = result;
+        savedTrade.amount = amount;
+        savedTrade.date = date;
+        if (editingTradeMode === 'goal') {
+          const targetBalance = state.goalMode.startingBalance + state.goalMode.goalAmount;
+          state.goalMode.status = getGoalBalance() >= targetBalance ? 'completed' : 'active';
+        } else {
+          const affectedChallenges = new Set();
+          for (const day of state.days.filter(item => item.finished
+            && (item.date === previousDate || item.date === date))) {
+            day.green = getDayPnl(day.date) > 0;
+            if (day.challengeId) {
+              affectedChallenges.add(day.challengeId);
+            }
+          }
+          for (const challengeId of affectedChallenges) {
+            const challenge = getChallenge(challengeId);
+            if (challenge) {
+              refreshChallengeResult(challenge);
+            }
+          }
+        }
+      })) {
+        elements.tradeDialog.close();
+        editingTradeId = null;
+        editingTradeMode = 'challenge';
+        elements.tradeDateField.hidden = true;
+        elements.tradeDate.disabled = true;
+        render();
+      }
+      return;
+    }
+
+    const goalMode = state.activeMode === 'goal';
+    const day = goalMode ? getTodayGoalDay() : getTodayDay();
     if (!day || day.finished) {
       showStorageError('Start a trading day before logging trades.');
       elements.tradeDialog.close();
       return;
     }
 
-    const formData = new FormData(elements.tradeForm);
-    const symbol = String(formData.get('symbol')).trim().toUpperCase();
-    const result = String(formData.get('result'));
-    const amount = Number(formData.get('amount'));
     const limit = day.majorNewsEvent ? NEWS_TRADE_LIMIT : DAILY_TRADE_LIMIT;
-    if (!symbol || !['positive', 'negative'].includes(result) || !Number.isFinite(amount) || amount <= 0) {
-      showStorageError('Enter a symbol and an amount greater than zero.');
-      return;
-    }
-    if (getDayTrades(day.date).length >= limit) {
+    const dayTrades = goalMode ? getGoalDayTrades(day.date) : getDayTrades(day.date);
+    if (dayTrades.length >= limit) {
       showStorageError(`Today's limit is ${limit} trades.`);
       elements.tradeDialog.close();
       return;
@@ -728,7 +1251,18 @@
       amount,
       createdAt: new Date().toISOString()
     };
-    if (changeState(() => state.trades.push(trade))) {
+    if (changeState(() => {
+      if (goalMode) {
+        state.goalMode.trades.push(trade);
+        const targetBalance = state.goalMode.startingBalance + state.goalMode.goalAmount;
+        if (getGoalBalance() >= targetBalance) {
+          state.goalMode.status = 'completed';
+          day.finished = true;
+        }
+      } else {
+        state.trades.push(trade);
+      }
+    })) {
       elements.tradeDialog.close();
       render();
       openEncouragementDialog(result);
@@ -789,7 +1323,7 @@
 
   finishPreviousDays();
   render();
-  if (!getTodayDay() && !state.skippedDates.includes(localToday())) {
+  if (state.activeMode === 'challenge' && !getTodayDay() && !state.skippedDates.includes(localToday())) {
     openDayDialog();
   }
 })();

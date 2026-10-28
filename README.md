@@ -1,6 +1,6 @@
-# 20-Day Trading Challenge
+# Trading Challenge & Goal Mode
 
-A small, private trading journal for a personal 20-day green-day challenge. Your trades and challenge progress are saved in this browser on this device; they are not sent to a server.
+An offline-first app with a 20-day green-day trading journal and a compounded profit-goal planner. Your trades, goals, and settings are saved in this browser on this device; they are not sent to a server.
 
 ## Share with friends
 
@@ -37,12 +37,23 @@ The launcher opens the app in Microsoft Edge's app window when Edge is installed
 
 ## Use your challenge
 
+The app has two modes. Choose **TradeChallenge** to use the 20-day green-day journal, or **Goal Mode** to estimate the starting capital and daily targets for a profit goal. Your selected mode and Goal Mode settings are saved in this browser.
+
+### Goal Mode
+
+- Enter your starting account balance and profit goal, then choose 1 week (5 trading days), 2 weeks (10 trading days), or 1 month (20 trading days).
+- Review the compounded percentage and dollar gain target for one target trade per trading day, along with the projected balance path. Confirm the plan to start tracking.
+- Start each trading day, log up to three trades (four when you mark a major news event), and end the day. Actual signed trade results update your Goal Mode balance and progress; losing days reduce progress but do not end the goal.
+- Goal Mode keeps its own trade history, separate from TradeChallenge. You can edit Goal Mode trades from its history table or start a new goal to replace the current plan and progress.
+- Projections assume the target percentage is gained on one trade each trading day and gains compound. Actual trading results vary; logged losses, additional trades, fees, and slippage can change results. This is not financial or investment advice.
+
 - When prompted, choose whether you are trading today. A day only counts toward the challenge if you start it. Skipping a day leaves the challenge progress unchanged.
 - Starting your day records your opening account balance. Each trade is a symbol, a positive or negative result, and the absolute dollar amount of that result.
 - You may log up to three trades per started day. Mark **Major news event today** to allow one additional trade, for a maximum of four.
 - After each saved trade, the app shows your editable green- or red-trade encouragement. Choose **Edit trade messages** under the challenge progress to personalize both.
 - Daily net P&L is the sum of positive amounts minus negative amounts. Finish the day when you are done; days with zero or negative net P&L end that challenge run. A new 20-day run can be started afterward.
 - **End day & export CSV** saves the day's result and downloads a spreadsheet-compatible CSV containing its summary and individual trades. The browser remains the source of truth; on the next day, the last finished day's calculated closing balance is pre-filled as your opening balance, which you can adjust.
+- Use **Edit** beside a trade in Trade history to correct its date, symbol, result, or amount. Editing a finished day's trade recalculates the affected day's result and challenge status.
 - The displayed closing balance is an estimate calculated from the opening balance plus the day's net P&L. Fees and currency conversion are not included. The daily CSV opens in spreadsheet programs such as Excel, but it is not a native `.xlsx` workbook.
 - Filter the trade history by date, and use **Export backup** to download a JSON copy of your journal.
 

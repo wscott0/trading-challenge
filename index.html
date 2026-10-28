@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f6f2">
-    <meta name="description" content="A private, offline-first journal for a personal 20-day trading challenge.">
-    <title>20-Day Trading Challenge</title>
+    <meta name="description" content="An offline-first trading challenge journal and compounded goal planner.">
+    <title>Trading Challenge &amp; Goal Mode</title>
     <link rel="icon" href="icon.svg" type="image/svg+xml">
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
@@ -18,8 +18,17 @@
           <span class="brand-mark" aria-hidden="true">T</span>
           <span>Trade<span class="brand-light">Challenge</span></span>
         </a>
-        <div class="sidebar-label">YOUR CHALLENGE</div>
-        <nav aria-label="Main navigation">
+        <div class="sidebar-label">MODES</div>
+        <nav class="mode-navigation" aria-label="App modes">
+          <button class="nav-link mode-link active" id="challenge-mode-button" type="button" aria-pressed="true">
+            <span class="nav-icon" aria-hidden="true">▦</span> TradeChallenge
+          </button>
+          <button class="nav-link mode-link" id="goal-mode-button" type="button" aria-pressed="false">
+            <span class="nav-icon" aria-hidden="true">◎</span> Goal Mode
+          </button>
+        </nav>
+        <div class="sidebar-label challenge-navigation-label">YOUR CHALLENGE</div>
+        <nav id="challenge-navigation" aria-label="TradeChallenge navigation">
           <a class="nav-link active" href="#overview" aria-current="page">
             <span class="nav-icon" aria-hidden="true">▦</span> Overview
           </a>
@@ -52,6 +61,7 @@
 
         <div class="storage-error" id="storage-error" role="alert" hidden></div>
 
+        <div id="challenge-mode-view">
         <section class="page-section" id="overview" aria-labelledby="welcome-heading">
           <div class="welcome-row">
             <div>
@@ -152,6 +162,7 @@
                     <th scope="col">SYMBOL</th>
                     <th scope="col">RESULT</th>
                     <th scope="col">AMOUNT</th>
+                    <th scope="col">ACTION</th>
                   </tr>
                 </thead>
                 <tbody id="trades-body"></tbody>
@@ -165,6 +176,170 @@
             <div class="table-footer" id="history-footer"></div>
           </section>
           <footer class="disclaimer">For personal record-keeping only. This journal does not provide financial or investment advice.</footer>
+        </section>
+        </div>
+
+        <section class="page-section goal-mode-view" id="goal-mode-view" aria-labelledby="goal-mode-heading" hidden>
+          <div class="welcome-row">
+            <div>
+              <div class="eyebrow accent-eyebrow">GOAL MODE</div>
+              <h1 id="goal-mode-heading">Plan a trading goal</h1>
+              <p class="section-subtitle">Set your starting balance and profit goal, then track your actual results.</p>
+            </div>
+          </div>
+
+          <section class="panel goal-panel" aria-labelledby="goal-settings-heading">
+            <div class="goal-panel-heading">
+              <div>
+                <h2 id="goal-settings-heading">Set your goal</h2>
+                <p class="panel-description">Choose a profit target and timeframe to calculate your compounded target per trade.</p>
+              </div>
+            </div>
+            <form id="goal-form">
+              <div class="goal-input-grid">
+                <label class="field">
+                  <span>Starting account balance</span>
+                  <div class="input-with-prefix"><span>$</span><input id="goal-starting-input" name="startingBalance" type="number" min="0.01" max="1000000000000" step="0.01" placeholder="e.g. 1,000.00" required></div>
+                </label>
+                <label class="field">
+                  <span>Profit goal</span>
+                  <div class="input-with-prefix"><span>$</span><input id="goal-amount" name="goalAmount" type="number" min="0.01" max="1000000000000" step="0.01" placeholder="e.g. 1,000.00" required></div>
+                </label>
+                <fieldset class="field goal-timeframe-field">
+                  <legend>Timeframe</legend>
+                  <div class="segmented-control">
+                    <label><input type="radio" name="timeframe" value="5" checked><span>1 week</span></label>
+                    <label><input type="radio" name="timeframe" value="10"><span>2 weeks</span></label>
+                    <label><input type="radio" name="timeframe" value="20"><span>1 month</span></label>
+                  </div>
+                  <small class="goal-input-hint">Based on 5 trading days per week.</small>
+                </fieldset>
+              </div>
+              <div class="goal-form-actions">
+                <button class="button button-primary" type="submit">Review goal</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="goal-results goal-review" id="goal-review" aria-live="polite" hidden>
+            <div class="goal-summary-grid">
+              <article class="goal-summary-card">
+                <span>STARTING ACCOUNT BALANCE</span>
+                <strong id="goal-starting-capital">—</strong>
+                <small>Balance you entered</small>
+              </article>
+              <article class="goal-summary-card">
+                <span>REQUIRED TARGET PER TRADE</span>
+                <strong id="goal-trade-target">—</strong>
+                <small id="goal-trade-target-amount">—</small>
+              </article>
+              <article class="goal-summary-card">
+                <span>GOAL BALANCE</span>
+                <strong id="goal-ending-balance">—</strong>
+                <small id="goal-summary-timeframe">—</small>
+              </article>
+            </div>
+            <section class="panel goal-schedule-panel goal-review-panel" aria-labelledby="goal-schedule-heading">
+              <div class="panel-header">
+                <div>
+                  <h2 id="goal-schedule-heading">Projected target path</h2>
+                  <p class="panel-description" id="goal-schedule-description"></p>
+                </div>
+              </div>
+              <div class="table-wrap goal-schedule-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">TRADING DAY</th>
+                      <th scope="col">STARTING BALANCE</th>
+                      <th scope="col">GAIN TARGET</th>
+                      <th scope="col">PROJECTED BALANCE</th>
+                    </tr>
+                  </thead>
+                  <tbody id="goal-schedule-body"></tbody>
+                </table>
+              </div>
+            </section>
+            <div class="goal-confirm-actions">
+              <button class="button button-primary" id="confirm-goal-button" type="button">Confirm goal &amp; start tracking</button>
+            </div>
+          </section>
+
+          <section class="goal-tracker" id="goal-tracker" hidden>
+            <div class="goal-summary-grid goal-tracker-summary">
+              <article class="goal-summary-card">
+                <span>STARTING BALANCE</span>
+                <strong id="goal-tracker-starting">—</strong>
+                <small>Initial account balance</small>
+              </article>
+              <article class="goal-summary-card">
+                <span>CURRENT BALANCE</span>
+                <strong id="goal-current-balance">—</strong>
+                <small id="goal-current-pnl">—</small>
+              </article>
+              <article class="goal-summary-card">
+                <span>PROFIT GOAL</span>
+                <strong id="goal-tracker-goal">—</strong>
+                <small id="goal-tracker-timeframe">—</small>
+              </article>
+            </div>
+            <section class="panel goal-progress-panel">
+              <div class="goal-progress-heading">
+                <div>
+                  <h2 id="goal-progress-title">Goal progress</h2>
+                  <p class="panel-description" id="goal-progress-description"></p>
+                </div>
+                <strong id="goal-progress-percent">0%</strong>
+              </div>
+              <div class="goal-progress-track" role="progressbar" id="goal-progress-bar" aria-label="Profit goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <span id="goal-progress-fill"></span>
+              </div>
+              <p class="goal-next-target" id="goal-next-target"></p>
+              <div class="goal-day-controls">
+                <label class="news-toggle" id="goal-news-toggle" hidden>
+                  <input id="goal-news-event" type="checkbox">
+                  <span>Major news event today</span>
+                  <small>Allows one extra trade (4 max)</small>
+                </label>
+                <div class="day-buttons">
+                  <button class="button button-primary" id="goal-start-day-button" type="button">Start today</button>
+                  <button class="button button-secondary" id="goal-add-trade-button" type="button" hidden>＋ Log a trade</button>
+                  <button class="button button-quiet" id="goal-finish-day-button" type="button" hidden>End day</button>
+                </div>
+              </div>
+              <div class="goal-day-closed" id="goal-day-closed" hidden></div>
+            </section>
+            <section class="panel trades-panel history-panel goal-history-panel" aria-labelledby="goal-history-heading">
+              <div class="panel-header">
+                <div>
+                  <h2 id="goal-history-heading">Goal trade history</h2>
+                  <p class="panel-description">These trades update Goal Mode progress only.</p>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">DATE</th>
+                      <th scope="col">SYMBOL</th>
+                      <th scope="col">RESULT</th>
+                      <th scope="col">AMOUNT</th>
+                      <th scope="col">ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody id="goal-trades-body"></tbody>
+                </table>
+                <div class="empty-state" id="goal-empty-state">
+                  <span class="empty-icon" aria-hidden="true">◎</span>
+                  <strong>No goal trades logged yet</strong>
+                  <p>Start a goal day, then record your trades.</p>
+                </div>
+              </div>
+              <div class="table-footer" id="goal-history-footer"></div>
+            </section>
+            <div class="goal-reset-row"><button class="text-button" id="goal-new-button" type="button">Start a new goal</button></div>
+          </section>
+          <p class="goal-disclaimer">The target assumes one winning target trade per trading day with gains compounded. Goal Mode can record up to three trades per day, or four when you mark a major news event; all logged gains and losses affect actual progress. Projections are illustrative, exclude fees and slippage, and are not financial or investment advice.</p>
         </section>
       </main>
     </div>
@@ -199,12 +374,16 @@
       <form class="modal-form" id="trade-form">
         <div class="modal-header">
           <div>
-            <div class="eyebrow accent-eyebrow">TODAY'S TRADE <span id="trade-count-hint"></span></div>
+            <div class="eyebrow accent-eyebrow" id="trade-dialog-eyebrow">TODAY'S TRADE <span id="trade-count-hint"></span></div>
             <h2 id="trade-dialog-title">Log a trade</h2>
           </div>
           <button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button>
         </div>
         <div class="form-grid">
+          <label class="field field-full" id="trade-date-field" hidden>
+            <span>Trade date</span>
+            <input id="trade-date" name="date" type="date" disabled required>
+          </label>
           <label class="field">
             <span>Symbol</span>
             <input id="trade-symbol" name="symbol" type="text" maxlength="20" placeholder="e.g. AAPL" autocomplete="off" required>
@@ -224,7 +403,24 @@
         <p class="field-hint">Enter the size of the gain or loss as a positive amount. The result above sets its sign.</p>
         <div class="modal-actions">
           <button class="button button-quiet" type="button" data-close-dialog>Cancel</button>
-          <button class="button button-primary" type="submit">Save trade</button>
+          <button class="button button-primary" id="trade-submit-button" type="submit">Save trade</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="goal-reset-dialog" aria-labelledby="goal-reset-title">
+      <form class="modal-form" id="goal-reset-form">
+        <div class="modal-header">
+          <div>
+            <div class="eyebrow accent-eyebrow">GOAL MODE</div>
+            <h2 id="goal-reset-title">Start a new goal?</h2>
+          </div>
+          <button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button>
+        </div>
+        <p class="panel-description">This will replace your current goal and remove its Goal Mode trade history from this browser. Export a backup first if you want to keep a copy.</p>
+        <div class="modal-actions">
+          <button class="button button-quiet" type="button" data-close-dialog>Keep current goal</button>
+          <button class="button button-primary" type="submit">Replace goal</button>
         </div>
       </form>
     </dialog>
@@ -239,7 +435,7 @@
           <button class="icon-button" type="button" data-close-dialog aria-label="Close dialog">×</button>
         </div>
         <p class="finish-summary" id="finish-summary"></p>
-        <p class="panel-description">Finishing saves today's results in your journal and downloads an Excel-compatible CSV backup. This day's trades can't be changed. A day is green only when its combined P&amp;L is above $0.</p>
+        <p class="panel-description">Finishing saves today's results in your journal and downloads an Excel-compatible CSV backup. You can correct trade entries later from Trade history. A day is green only when its combined P&amp;L is above $0.</p>
         <div class="modal-actions">
           <button class="button button-quiet" type="button" data-close-dialog>Keep trading</button>
           <button class="button button-primary" type="submit">End day &amp; download CSV</button>

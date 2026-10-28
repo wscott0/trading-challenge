@@ -71,6 +71,9 @@ button { cursor: pointer; }
 .sidebar-label { padding: 0 11px 12px; }
 
 .sidebar nav { display: grid; gap: 5px; }
+.mode-navigation { margin-bottom: 20px; }
+.mode-link { width: 100%; border: 0; background: transparent; font: inherit; text-align: left; }
+.challenge-navigation-label { margin-top: 2px; }
 
 .nav-link {
   display: flex;
@@ -167,6 +170,10 @@ td.symbol-cell { color: var(--ink); font-size: 11px; font-weight: 700; }
 .pnl-cell { font-weight: 700; }
 .pnl-cell.positive { color: var(--green); }
 .pnl-cell.negative { color: var(--red); }
+.trade-actions { text-align: right; }
+.trade-edit-button { padding: 4px 7px; border: 1px solid var(--border); border-radius: 4px; background: #fff; color: var(--green-dark); font-size: 9px; font-weight: 600; }
+.trade-edit-button:hover { border-color: #cad3cb; background: #f8faf7; }
+.trade-edit-button:focus-visible { outline: 2px solid #86a990; outline-offset: 2px; }
 .empty-state { display: flex; min-height: 198px; flex-direction: column; align-items: center; justify-content: center; padding: 22px; text-align: center; }
 .empty-state[hidden] { display: none; }
 .empty-icon { display: grid; width: 34px; height: 34px; place-items: center; margin-bottom: 9px; border-radius: 50%; background: #f0f4ef; color: var(--green); font-size: 17px; }
@@ -202,6 +209,7 @@ td.symbol-cell { color: var(--ink); font-size: 11px; font-weight: 700; }
 .modal-header .eyebrow { margin: 3px 0 5px; }
 .modal-header h2 { margin: 0; font-family: 'Manrope', 'Segoe UI', sans-serif; font-size: 20px; letter-spacing: -.5px; }
 .field { display: grid; min-width: 0; gap: 6px; color: #515e55; font-size: 10px; font-weight: 600; }
+.field[hidden] { display: none; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px 14px; }
 .field input, .field textarea, .add-rule-row input { width: 100%; min-width: 0; min-height: 37px; padding: 8px 10px; border: 1px solid #e2e7e1; border-radius: 5px; outline: none; background: #fff; color: var(--ink); font-size: 11px; font-weight: 400; }
 .field input:focus, .field textarea:focus, .add-rule-row input:focus { border-color: #86a990; box-shadow: 0 0 0 2px #e6f0e7; }
@@ -260,6 +268,9 @@ td.symbol-cell { color: var(--ink); font-size: 11px; font-weight: 700; }
   .brand { margin: 0 0 13px; }
   .sidebar-label, .sidebar-spacer, .privacy-note, .sidebar-footer { display: none; }
   .sidebar nav { display: flex; gap: 3px; overflow-x: auto; padding-bottom: 8px; }
+  .sidebar .mode-navigation { margin-bottom: 9px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .sidebar .mode-link { width: auto; flex: 0 0 auto; }
+  .sidebar .challenge-navigation-label { display: block; }
   .nav-link { min-height: 35px; flex: 0 0 auto; gap: 7px; padding: 0 9px; font-size: 10px; }
   .nav-icon { width: 14px; font-size: 13px; }
   .main-content { min-height: auto; margin: 0; }
@@ -305,6 +316,7 @@ td.symbol-cell { color: var(--ink); font-size: 11px; font-weight: 700; }
   .stat-value { font-size: 17px; }
   .stat-caption { font-size: 7px; }
   .form-grid { grid-template-columns: 1fr; }
+  .goal-timeframe-field .segmented-control span { font-size: 8px; }
   .field-full { grid-column: auto; }
   .modal-form { padding: 19px 17px 16px; }
 }
@@ -333,7 +345,42 @@ td.symbol-cell { color: var(--ink); font-size: 11px; font-weight: 700; }
 .challenge-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 28px; padding-top: 10px; color: var(--muted); font-size: 10px; }
 .challenge-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; }
 .challenge-actions .text-button { margin: 0; white-space: nowrap; }
-
+.goal-panel { margin-top: 23px; padding: 21px; }
+.goal-panel-heading { margin-bottom: 19px; }
+.goal-panel-heading h2 { font-size: 16px; }
+.goal-input-grid { display: grid; grid-template-columns: minmax(160px, .9fr) minmax(160px, .9fr) minmax(260px, 1.4fr); align-items: start; gap: 16px; }
+.goal-timeframe-field { margin: 0; padding: 0; border: 0; }
+.goal-timeframe-field legend { margin-bottom: 6px; color: #515e55; font-size: 10px; font-weight: 600; }
+.goal-timeframe-field .segmented-control span { font-size: 9px; }
+.goal-input-hint { display: block; margin-top: 7px; color: var(--muted); font-size: 9px; font-weight: 400; }
+.input-with-suffix { position: relative; }
+.input-with-suffix > span { position: absolute; top: 50%; right: 10px; color: #8c968e; font-size: 11px; transform: translateY(-50%); }
+.input-with-suffix input { padding-right: 27px; }
+.goal-form-actions { display: flex; justify-content: flex-end; margin-top: 19px; padding-top: 15px; border-top: 1px solid var(--border); }
+.goal-results { margin-top: 17px; }
+.goal-summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; }
+.goal-summary-card { display: grid; min-height: 114px; align-content: start; gap: 9px; padding: 16px 17px; border: 1px solid var(--border); border-radius: 9px; background: #fff; }
+.goal-summary-card > span { color: var(--muted); font-size: 8px; font-weight: 700; letter-spacing: .7px; }
+.goal-summary-card strong { color: var(--green-dark); font-family: 'Manrope', 'Segoe UI', sans-serif; font-size: 22px; letter-spacing: -.5px; }
+.goal-summary-card small { color: var(--muted); font-size: 9px; }
+.goal-schedule-panel { margin-top: 15px; overflow: hidden; }
+.goal-schedule-wrap { min-height: 0; max-height: 520px; }
+.goal-schedule-wrap th, .goal-schedule-wrap td { text-align: right; }
+.goal-schedule-wrap th:first-child, .goal-schedule-wrap td:first-child { text-align: left; }
+.goal-confirm-actions { display: flex; justify-content: flex-end; margin-top: 15px; }
+.goal-tracker { margin-top: 18px; }
+.goal-tracker-summary { margin-bottom: 14px; }
+.goal-progress-panel { margin-top: 14px; padding: 18px 19px; }
+.goal-progress-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.goal-progress-heading h2 { margin: 0; font-size: 15px; }
+.goal-progress-heading > strong { color: var(--green); font-family: 'Manrope', 'Segoe UI', sans-serif; font-size: 22px; }
+.goal-progress-track { height: 9px; margin-top: 15px; overflow: hidden; border-radius: 9px; background: #e9ede7; }
+.goal-progress-track > span { display: block; width: 0; height: 100%; border-radius: inherit; background: #519168; transition: width .2s ease; }
+.goal-next-target { margin: 10px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.goal-day-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 13px; border-top: 1px solid #eef0ec; }
+.goal-history-panel { margin-top: 15px; overflow: hidden; }
+.goal-reset-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+.goal-disclaimer { margin: 15px 2px 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
 .stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .stat-value.status-neutral { color: #647168; font-size: 17px; letter-spacing: 0; }
 .day-panel { margin-bottom: 15px; padding: 18px 19px 14px; }
@@ -397,6 +444,14 @@ td.symbol-cell { color: var(--ink); font-size: 11px; font-weight: 700; }
   .day-balance strong { font-size: 13px; }
   .start-day-card { align-items: flex-start; flex-direction: column; padding: 15px; }
   .start-day-card > .button { width: 100%; }
+  .goal-panel { padding: 15px; }
+  .goal-input-grid { grid-template-columns: 1fr; gap: 13px; }
+  .goal-summary-grid { grid-template-columns: 1fr; gap: 8px; }
+  .goal-summary-card { min-height: 0; gap: 6px; padding: 13px; }
+  .goal-summary-card strong { font-size: 19px; }
+  .goal-day-controls { align-items: flex-start; flex-direction: column; }
+  .goal-day-controls .day-buttons { width: 100%; }
+  .goal-day-controls .day-buttons .button { flex: 1; }
 }
 
 @media (max-width: 430px) {

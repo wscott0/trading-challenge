@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') + '\'
 $appUrl = 'http://127.0.0.1:8765/'
-$appTitle = '<title>20-Day Trading Challenge</title>'
+$appMarker = 'id="goal-mode-view"'
 
 $openApp = {
     $edgePaths = @(
@@ -18,7 +18,7 @@ $openApp = {
 
 $isChallengeApp = {
     param ($Response)
-    return $Response.StatusCode -eq 200 -and $Response.Content.Contains($appTitle)
+    return $Response.StatusCode -eq 200 -and $Response.Content.Contains($appMarker)
 }
 
 try {
@@ -60,7 +60,7 @@ try {
     throw "The local server could not open the app in your browser: $($_.Exception.Message)"
 }
 
-Write-Host 'The 20-Day Trading Challenge is open in your browser.'
+Write-Host 'The Trading Challenge & Goal Mode app is open in your browser.'
 Write-Host 'Keep this minimized window open while you use the app. Close it to stop the local server.'
 
 $contentTypes = @{
