@@ -35,6 +35,23 @@ The shortcut launches the included PowerShell app rather than a standalone nativ
 
 The launcher opens the app in Microsoft Edge's app window when Edge is installed. The app shell is cached for offline use after its first successful load. You can install it from Edge's **Apps** menu if you want a Start menu or taskbar shortcut.
 
+### Install TradeBook as a Google Chrome app
+
+1. Start the local web server:
+   - On Windows, run `Start-TradeJournal.ps1` using the instructions above. It opens Edge, but leaves the local server running for Chrome too.
+   - On macOS or Linux, open Terminal in the project folder and run:
+
+     ```sh
+     python3 -m http.server 8765 --bind 127.0.0.1
+     ```
+
+     Keep the Terminal window open while using the app.
+2. In Google Chrome, open [http://127.0.0.1:8765/](http://127.0.0.1:8765/).
+3. Install the app using Chrome's **Install** icon in the address bar, or open the Chrome menu and choose **Cast, save, and share > Install page as app**. Confirm the name **TradeBook**.
+4. To keep it handy, open the installed app. On macOS, Control-click its Dock icon and choose **Options > Keep in Dock**. On Windows, right-click its taskbar icon and choose **Pin to taskbar**.
+
+The local server must be running for the initial install and to load app updates; after the first successful load, the app shell is cached for offline use. TradeBook saves journal data in the browser profile used to install and open it. Data in another browser or profile (including VS Code's embedded browser) is separate and is not transferred automatically. Use **Export backup** to save a JSON copy of a journal.
+
 ## Use your challenge
 
 The app has two modes. Choose **TradeChallenge** to use the 20-day green-day journal, or **Goal Mode** to estimate the starting capital and daily targets for a profit goal. Your selected mode and Goal Mode settings are saved in this browser.
