@@ -1353,7 +1353,4 @@
 
   finishPreviousDays();
   render();
-  if (state.activeMode === 'challenge' && !getTodayDay() && !state.skippedDates.includes(localToday())) {
-    openDayDialog();
-  }
 })();

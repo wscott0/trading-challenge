@@ -52,6 +52,12 @@ The launcher opens the app in Microsoft Edge's app window when Edge is installed
 
 The local server must be running for the initial install and to load app updates; after the first successful load, the app shell is cached for offline use. TradeBook saves journal data in the browser profile used to install and open it. Data in another browser or profile (including VS Code's embedded browser) is separate and is not transferred automatically. Use **Export backup** to save a JSON copy of a journal.
 
+### Refresh or reset test data in Chrome
+
+- To reload TradeBook without deleting your journal, use **⌘R** on macOS or **Ctrl+R** on Windows. Keep the local server running so Chrome can load the latest app files.
+- To clear a test journal and its cached app files, first use **Export backup** if you may want to keep a copy. In Chrome, open `chrome://settings/content/all`, search for `127.0.0.1`, and delete the stored data for that site. This removes TradeBook's saved journal, settings, and offline app cache for that origin. Reopen the TradeBook app while the local server is running to start with a fresh journal and cache.
+- Clearing site data affects every tab or installed app using `http://127.0.0.1:8765/` in that Chrome profile. It does not clear data in other browser profiles, browsers, or VS Code's embedded browser.
+
 ## Use your challenge
 
 The app has two modes. Choose **TradeChallenge** to use the 20-day green-day journal, or **Goal Mode** to estimate the starting capital and daily targets for a profit goal. Your selected mode and Goal Mode settings are saved in this browser.
