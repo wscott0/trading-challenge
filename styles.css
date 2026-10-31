@@ -376,6 +376,10 @@ td.symbol-cell { color: var(--ink); font-size: 11px; font-weight: 700; }
 .goal-progress-heading > strong { color: var(--green); font-family: 'Manrope', 'Segoe UI', sans-serif; font-size: 22px; }
 .goal-progress-track { height: 9px; margin-top: 15px; overflow: hidden; border-radius: 9px; background: #e9ede7; }
 .goal-progress-track > span { display: block; width: 0; height: 100%; border-radius: inherit; background: #519168; transition: width .2s ease; }
+.goal-daily-progress { margin-top: 18px; padding-top: 16px; border-top: 1px solid #eef0ec; }
+.goal-daily-progress .goal-progress-heading h3 { margin: 0; font-size: 13px; }
+.goal-daily-progress .goal-progress-heading > strong { color: var(--green); font-family: 'Manrope', 'Segoe UI', sans-serif; font-size: 18px; }
+.goal-daily-progress .goal-progress-track { margin-top: 11px; }
 .goal-next-target { margin: 10px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
 .goal-day-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding-top: 13px; border-top: 1px solid #eef0ec; }
 .goal-history-panel { margin-top: 15px; overflow: hidden; }

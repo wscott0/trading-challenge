@@ -111,6 +111,11 @@
     goalProgressPercent: document.querySelector('#goal-progress-percent'),
     goalProgressBar: document.querySelector('#goal-progress-bar'),
     goalProgressFill: document.querySelector('#goal-progress-fill'),
+    goalDailyProgressTitle: document.querySelector('#goal-daily-progress-title'),
+    goalDailyProgressDescription: document.querySelector('#goal-daily-progress-description'),
+    goalDailyProgressPercent: document.querySelector('#goal-daily-progress-percent'),
+    goalDailyProgressBar: document.querySelector('#goal-daily-progress-bar'),
+    goalDailyProgressFill: document.querySelector('#goal-daily-progress-fill'),
     goalNextTarget: document.querySelector('#goal-next-target'),
     goalStartDayButton: document.querySelector('#goal-start-day-button'),
     goalAddTradeButton: document.querySelector('#goal-add-trade-button'),
@@ -689,7 +694,7 @@
     const tradingDays = goal.timeframe;
     elements.goalStartingCapital.textContent = formatMoney(goal.startingBalance);
     elements.goalTradeTarget.textContent = `${(targetReturn * 100).toFixed(2)}%`;
-    elements.goalTradeTargetAmount.textContent = `${formatMoney(goal.startingBalance * targetReturn)} target gain on the first trade day`;
+    elements.goalTradeTargetAmount.textContent = `${formatMoney(goal.startingBalance * targetReturn)} target gain on the first day`;
     elements.goalSummaryTimeframe.textContent = `${tradingDays} trading days · ${formatMoney(goal.goalAmount)} profit goal`;
     elements.goalEndingBalance.textContent = formatMoney(targetBalance);
     elements.goalScheduleDescription.textContent = `Assuming one target trade per trading day, this compounded return reaches the goal balance in ${tradingDays} trading days.`;
@@ -729,6 +734,17 @@
     const remainingDays = goal.timeframe - completedDays;
     const dailyReturn = getRequiredGoalReturn(currentBalance, remainingDays);
     const tradeCount = todayDay ? getGoalDayTrades(todayDay.date).length : 0;
+    const completedDaysBeforeToday = todayDay
+      ? goal.days.filter(day => day.finished && day.date < todayDay.date).length
+      : completedDays;
+    const dayStartingBalance = todayDay ? todayDay.startingBalance : currentBalance;
+    const dayTargetReturn = getRequiredGoalReturn(dayStartingBalance, goal.timeframe - completedDaysBeforeToday);
+    const dayTargetGain = dayTargetReturn === null ? null : dayStartingBalance * dayTargetReturn;
+    const dayPnl = todayDay
+      ? getGoalDayTrades(todayDay.date).reduce((sum, trade) => sum + getTradeAmount(trade), 0)
+      : 0;
+    const dayProgress = dayTargetGain && dayTargetGain > 0 ? dayPnl / dayTargetGain * 100 : 0;
+    const dayProgressBarValue = Math.max(0, Math.min(100, dayProgress));
 
     elements.goalTrackerStarting.textContent = formatMoney(goal.startingBalance);
     elements.goalCurrentBalance.textContent = formatMoney(currentBalance);
@@ -742,6 +758,23 @@
     elements.goalProgressDescription.textContent = goal.status === 'completed'
       ? `Your account is at or above the goal balance of ${formatMoney(targetBalance)}.`
       : `${completedDays} of ${goal.timeframe} trading days completed · ${formatMoney(Math.max(0, targetBalance - currentBalance))} remaining to reach your ${formatMoney(goal.goalAmount)} profit goal.`;
+    elements.goalDailyProgressTitle.textContent = todayDay
+      ? todayDay.finished ? "Today's target result" : "Today's target progress"
+      : 'Next trading day target';
+    elements.goalDailyProgressPercent.textContent = `${Math.floor(dayProgress)}%`;
+    elements.goalDailyProgressBar.setAttribute('aria-valuenow', String(Math.floor(dayProgressBarValue)));
+    elements.goalDailyProgressFill.style.width = `${dayProgressBarValue}%`;
+    elements.goalDailyProgressDescription.textContent = dayTargetGain === null || dayTargetGain <= 0
+      ? goal.status === 'completed'
+        ? 'Your profit goal is reached; no daily target remains.'
+        : dayStartingBalance <= 0
+          ? 'A daily target cannot be compounded from a balance of $0 or less.'
+          : `Your ${goal.timeframe}-day timeframe has passed; keep recording actual results toward the ${formatMoney(targetBalance)} goal balance.`
+      : todayDay
+        ? dayPnl >= dayTargetGain
+          ? `Today's net: ${formatMoney(dayPnl)} · Daily target: ${formatMoney(dayTargetGain)} · Exceeded by ${formatMoney(dayPnl - dayTargetGain)}.`
+          : `Today's net: ${formatMoney(dayPnl)} · ${formatMoney(dayTargetGain - dayPnl)} needed to reach today's ${formatMoney(dayTargetGain)} target.`
+        : `Next day target: ${formatMoney(dayTargetGain)} gain at ${(dayTargetReturn * 100).toFixed(2)}% from ${formatMoney(dayStartingBalance)}. Start your day to track progress.`;
     const nextTargetBalance = dailyReturn === null ? null : currentBalance * (1 + dailyReturn);
     const nextTradeTarget = dailyReturn === null ? null : currentBalance * dailyReturn;
     elements.goalNextTarget.textContent = goal.status === 'completed'
@@ -750,7 +783,7 @@
         ? `Your ${goal.timeframe}-day timeframe has passed. Keep recording actual results toward the ${formatMoney(targetBalance)} goal balance.`
       : dailyReturn === null
         ? `A compounded percentage target cannot be calculated with a current balance of $0 or less. ${formatMoney(Math.max(0, targetBalance - currentBalance))} remains to reach your goal balance.`
-        : `Target: ${(dailyReturn * 100).toFixed(2)}% per trade · Next target balance: ${formatMoney(nextTargetBalance)} · Approx. gain at current balance: ${formatMoney(nextTradeTarget)}`;
+        : `Target: ${(dailyReturn * 100).toFixed(2)}% per day · Next target balance: ${formatMoney(nextTargetBalance)} · Approx. gain at current balance: ${formatMoney(nextTradeTarget)}`;
 
     elements.goalStartDayButton.hidden = Boolean(todayDay) || goal.status === 'completed';
     elements.goalAddTradeButton.hidden = !todayDay || todayDay.finished || goal.status === 'completed';

@@ -192,7 +192,7 @@
             <div class="goal-panel-heading">
               <div>
                 <h2 id="goal-settings-heading">Set your goal</h2>
-                <p class="panel-description">Choose a profit target and timeframe to calculate your compounded target per trade.</p>
+                <p class="panel-description">Choose a profit target and timeframe to calculate your compounded daily target.</p>
               </div>
             </div>
             <form id="goal-form">
@@ -229,7 +229,7 @@
                 <small>Balance you entered</small>
               </article>
               <article class="goal-summary-card">
-                <span>REQUIRED TARGET PER TRADE</span>
+                <span>REQUIRED DAILY TARGET</span>
                 <strong id="goal-trade-target">—</strong>
                 <small id="goal-trade-target-amount">—</small>
               </article>
@@ -293,6 +293,18 @@
               </div>
               <div class="goal-progress-track" role="progressbar" id="goal-progress-bar" aria-label="Profit goal progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
                 <span id="goal-progress-fill"></span>
+              </div>
+              <div class="goal-daily-progress">
+                <div class="goal-progress-heading">
+                  <div>
+                    <h3 id="goal-daily-progress-title">Today's target progress</h3>
+                    <p class="panel-description" id="goal-daily-progress-description"></p>
+                  </div>
+                  <strong id="goal-daily-progress-percent">0%</strong>
+                </div>
+                <div class="goal-progress-track" role="progressbar" id="goal-daily-progress-bar" aria-label="Daily target progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                  <span id="goal-daily-progress-fill"></span>
+                </div>
               </div>
               <p class="goal-next-target" id="goal-next-target"></p>
               <div class="goal-day-controls">
