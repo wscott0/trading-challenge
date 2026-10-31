@@ -112,8 +112,6 @@
     goalProgressBar: document.querySelector('#goal-progress-bar'),
     goalProgressFill: document.querySelector('#goal-progress-fill'),
     goalNextTarget: document.querySelector('#goal-next-target'),
-    goalNewsToggle: document.querySelector('#goal-news-toggle'),
-    goalNewsEvent: document.querySelector('#goal-news-event'),
     goalStartDayButton: document.querySelector('#goal-start-day-button'),
     goalAddTradeButton: document.querySelector('#goal-add-trade-button'),
     goalFinishDayButton: document.querySelector('#goal-finish-day-button'),
@@ -731,7 +729,6 @@
     const remainingDays = goal.timeframe - completedDays;
     const dailyReturn = getRequiredGoalReturn(currentBalance, remainingDays);
     const tradeCount = todayDay ? getGoalDayTrades(todayDay.date).length : 0;
-    const tradeLimit = todayDay && todayDay.majorNewsEvent ? NEWS_TRADE_LIMIT : DAILY_TRADE_LIMIT;
 
     elements.goalTrackerStarting.textContent = formatMoney(goal.startingBalance);
     elements.goalCurrentBalance.textContent = formatMoney(currentBalance);
@@ -756,15 +753,10 @@
         : `Target: ${(dailyReturn * 100).toFixed(2)}% per trade · Next target balance: ${formatMoney(nextTargetBalance)} · Approx. gain at current balance: ${formatMoney(nextTradeTarget)}`;
 
     elements.goalStartDayButton.hidden = Boolean(todayDay) || goal.status === 'completed';
-    elements.goalNewsToggle.hidden = !todayDay || todayDay.finished || goal.status === 'completed';
-    elements.goalNewsEvent.checked = Boolean(todayDay && todayDay.majorNewsEvent);
-    elements.goalNewsEvent.disabled = Boolean(todayDay && getGoalDayTrades(todayDay.date).length >= NEWS_TRADE_LIMIT);
     elements.goalAddTradeButton.hidden = !todayDay || todayDay.finished || goal.status === 'completed';
     elements.goalFinishDayButton.hidden = !todayDay || todayDay.finished || goal.status === 'completed';
-    elements.goalAddTradeButton.disabled = !todayDay || tradeCount >= tradeLimit;
-    elements.goalAddTradeButton.textContent = tradeCount >= tradeLimit
-      ? 'Daily trade limit reached'
-      : `＋ Log ${tradeCount === 3 && todayDay.majorNewsEvent ? '4th ' : 'a '}trade`;
+    elements.goalAddTradeButton.disabled = !todayDay;
+    elements.goalAddTradeButton.textContent = '＋ Log a trade';
     elements.goalDayClosed.hidden = !todayDay || !todayDay.finished;
     elements.goalDayClosed.textContent = todayDay && todayDay.finished
       ? `Day complete · ${tradeCount} ${tradeCount === 1 ? 'trade' : 'trades'} · Day net: ${formatMoney(getGoalDayTrades(todayDay.date).reduce((sum, trade) => sum + getTradeAmount(trade), 0))} · Current balance: ${formatMoney(currentBalance)}`
@@ -897,7 +889,7 @@
     }
     const count = goalMode ? getGoalDayTrades(localToday()).length : getDayTrades(localToday()).length;
     const limit = day.majorNewsEvent ? NEWS_TRADE_LIMIT : DAILY_TRADE_LIMIT;
-    if (count >= limit) {
+    if (!goalMode && count >= limit) {
       showStorageError('You have reached the trade limit for today.');
       return;
     }
@@ -909,7 +901,7 @@
     elements.tradeDialogTitle.textContent = 'Log a trade';
     elements.tradeDialogEyebrow.firstChild.textContent = goalMode ? "GOAL MODE TRADE " : "TODAY'S TRADE ";
     elements.tradeSubmitButton.textContent = 'Save trade';
-    elements.tradeCountHint.textContent = ` · ${count + 1} of ${limit}`;
+    elements.tradeCountHint.textContent = goalMode ? '' : ` · ${count + 1} of ${limit}`;
     elements.tradeDialog.showModal();
     document.querySelector('#trade-symbol').focus();
   };
@@ -1092,17 +1084,6 @@
   elements.goalStartDayButton.addEventListener('click', startGoalDay);
   elements.goalAddTradeButton.addEventListener('click', openTradeDialog);
   elements.goalFinishDayButton.addEventListener('click', finishGoalDay);
-  elements.goalNewsEvent.addEventListener('change', () => {
-    const day = getTodayGoalDay();
-    if (!day || day.finished || state.goalMode.status !== 'active') {
-      return;
-    }
-    if (changeState(() => {
-      day.majorNewsEvent = elements.goalNewsEvent.checked;
-    })) {
-      render();
-    }
-  });
   elements.goalNewButton.addEventListener('click', () => {
     elements.goalResetDialog.showModal();
   });
@@ -1253,7 +1234,7 @@
 
     const limit = day.majorNewsEvent ? NEWS_TRADE_LIMIT : DAILY_TRADE_LIMIT;
     const dayTrades = goalMode ? getGoalDayTrades(day.date) : getDayTrades(day.date);
-    if (dayTrades.length >= limit) {
+    if (!goalMode && dayTrades.length >= limit) {
       showStorageError(`Today's limit is ${limit} trades.`);
       elements.tradeDialog.close();
       return;
