@@ -1,4 +1,4 @@
-const CACHE_NAME = 'trade-journal-v12';
+const CACHE_NAME = 'trade-journal-v13';
 const APP_FILES = [
   './',
   './index.html',

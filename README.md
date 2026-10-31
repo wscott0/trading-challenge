@@ -1,4 +1,4 @@
-# Trading Challenge & Goal Mode
+# TradeBook
 
 An offline-first app with a 20-day green-day trading journal and a compounded profit-goal planner. Your trades, goals, and settings are saved in this browser on this device; they are not sent to a server.
 

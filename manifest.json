@@ -1,7 +1,7 @@
 {
-  "name": "Trading Challenge & Goal Mode",
-  "short_name": "Trade Challenge",
-  "description": "An offline-first trading challenge journal and compounded goal planner.",
+  "name": "TradeBook",
+  "short_name": "TradeBook",
+  "description": "An offline-first trading journal with a 20-day challenge and compounded goal planner.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
