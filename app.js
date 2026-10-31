@@ -46,7 +46,6 @@
     startDayCard: document.querySelector('#start-day-card'),
     startDayDescription: document.querySelector('#start-day-description'),
     startChallengeButton: document.querySelector('#start-challenge-button'),
-    dayActionButton: document.querySelector('#day-action-button'),
     startDaySecondaryButton: document.querySelector('#start-day-secondary-button'),
     addTradeButton: document.querySelector('#add-trade-button'),
     finishDayButton: document.querySelector('#finish-day-button'),
@@ -579,8 +578,6 @@
       elements.startDayDescription.textContent = state.skippedDates.includes(today)
         ? 'You skipped today. You can still start a challenge day if you decide to trade.'
         : 'Choose whether you are trading today. Only started days count toward your challenge.';
-      elements.dayActionButton.textContent = 'Start today';
-      elements.dayActionButton.disabled = false;
       return;
     }
 
@@ -608,8 +605,6 @@
       ? 'Daily trade limit reached'
       : `＋ Log ${trades.length === 3 && day.majorNewsEvent ? '4th ' : 'a '}trade`;
     elements.finishDayButton.disabled = false;
-    elements.dayActionButton.textContent = day.finished ? 'Day finished' : 'Day in progress';
-    elements.dayActionButton.disabled = true;
     elements.dayDescription.textContent = day.finished
       ? `Trading day complete · ${trades.length} ${trades.length === 1 ? 'trade' : 'trades'} logged`
       : `${trades.length} of ${allowedTrades} trades logged · ${pnl > 0 ? 'Net P&L is green' : pnl < 0 ? 'Net P&L is currently negative' : 'Add trades to track today’s net'}`;
@@ -658,7 +653,6 @@
     elements.goalModeView.hidden = !goalModeActive;
     elements.challengeNavigation.hidden = goalModeActive;
     elements.challengeNavigationLabel.hidden = goalModeActive;
-    elements.dayActionButton.hidden = goalModeActive;
     elements.challengeModeButton.classList.toggle('active', !goalModeActive);
     elements.goalModeButton.classList.toggle('active', goalModeActive);
     elements.challengeModeButton.setAttribute('aria-pressed', String(!goalModeActive));
@@ -1051,11 +1045,6 @@
     }
   });
 
-  elements.dayActionButton.addEventListener('click', () => {
-    if (!getTodayDay()) {
-      openDayDialog();
-    }
-  });
   elements.challengeModeButton.addEventListener('click', () => {
     if (changeState(() => {
       state.activeMode = 'challenge';
