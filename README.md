@@ -43,7 +43,7 @@ The app has two modes. Choose **TradeChallenge** to use the 20-day green-day jou
 
 - Enter your starting account balance and profit goal, then choose 1 week (5 trading days), 2 weeks (10 trading days), or 1 month (20 trading days).
 - Review the compounded percentage and dollar gain target for one target trade per trading day, along with the projected balance path. Confirm the plan to start tracking.
-- Start each trading day, log up to three trades (four when you mark a major news event), and end the day. Actual signed trade results update your Goal Mode balance and progress; losing days reduce progress but do not end the goal.
+- Start each trading day, log up to three trades (four when you mark a major news event), and end the day. Actual signed trade results update your Goal Mode balance and progress; losing days reduce progress but do not end the goal. The required compounded percentage and next target balance recalculate from your current balance and remaining trading days, so gains above target lower the remaining rate and losses raise it.
 - Goal Mode keeps its own trade history, separate from TradeChallenge. You can edit Goal Mode trades from its history table or start a new goal to replace the current plan and progress.
 - Projections assume the target percentage is gained on one trade each trading day and gains compound. Actual trading results vary; logged losses, additional trades, fees, and slippage can change results. This is not financial or investment advice.
 

@@ -404,6 +404,19 @@
     return Number.isFinite(dailyReturn) ? dailyReturn : null;
   };
 
+  const getRequiredGoalReturn = (currentBalance, remainingDays) => {
+    const goal = state.goalMode;
+    const targetBalance = goal.startingBalance + goal.goalAmount;
+    if (!Number.isFinite(currentBalance) || currentBalance <= 0 || remainingDays <= 0) {
+      return null;
+    }
+    if (currentBalance >= targetBalance) {
+      return 0;
+    }
+    const dailyReturn = (targetBalance / currentBalance) ** (1 / remainingDays) - 1;
+    return Number.isFinite(dailyReturn) ? dailyReturn : null;
+  };
+
   const refreshChallengeResult = challenge => {
     const days = challenge.dayIds.map(id => state.days.find(day => day.id === id)).filter(Boolean);
     const failedDay = days.find(day => day.finished && !day.green);
@@ -715,7 +728,8 @@
     const targetBalance = goal.startingBalance + goal.goalAmount;
     const profit = currentBalance - goal.startingBalance;
     const progress = Math.max(0, Math.min(100, profit / goal.goalAmount * 100));
-    const dailyReturn = getGoalTarget();
+    const remainingDays = goal.timeframe - completedDays;
+    const dailyReturn = getRequiredGoalReturn(currentBalance, remainingDays);
     const tradeCount = todayDay ? getGoalDayTrades(todayDay.date).length : 0;
     const tradeLimit = todayDay && todayDay.majorNewsEvent ? NEWS_TRADE_LIMIT : DAILY_TRADE_LIMIT;
 
@@ -731,12 +745,14 @@
     elements.goalProgressDescription.textContent = goal.status === 'completed'
       ? `Your account is at or above the goal balance of ${formatMoney(targetBalance)}.`
       : `${completedDays} of ${goal.timeframe} trading days completed · ${formatMoney(Math.max(0, targetBalance - currentBalance))} remaining to reach your ${formatMoney(goal.goalAmount)} profit goal.`;
-    const nextTargetBalance = goal.startingBalance * (1 + dailyReturn) ** (completedDays + 1);
-    const nextTradeTarget = currentBalance * dailyReturn;
+    const nextTargetBalance = dailyReturn === null ? null : currentBalance * (1 + dailyReturn);
+    const nextTradeTarget = dailyReturn === null ? null : currentBalance * dailyReturn;
     elements.goalNextTarget.textContent = goal.status === 'completed'
       ? 'This goal is complete. Your trades and history remain saved.'
       : completedDays >= goal.timeframe
         ? `Your ${goal.timeframe}-day timeframe has passed. Keep recording actual results toward the ${formatMoney(targetBalance)} goal balance.`
+      : dailyReturn === null
+        ? `A compounded percentage target cannot be calculated with a current balance of $0 or less. ${formatMoney(Math.max(0, targetBalance - currentBalance))} remains to reach your goal balance.`
         : `Target: ${(dailyReturn * 100).toFixed(2)}% per trade · Next target balance: ${formatMoney(nextTargetBalance)} · Approx. gain at current balance: ${formatMoney(nextTradeTarget)}`;
 
     elements.goalStartDayButton.hidden = Boolean(todayDay) || goal.status === 'completed';
